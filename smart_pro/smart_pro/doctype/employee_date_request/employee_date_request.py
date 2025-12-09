@@ -49,11 +49,20 @@ class EmployeeDateRequest(Document):
                 self.project_scope = scope
 
     def set_default_approver(self):
-        """Set default approver as project manager"""
+        """Set default approver as project manager, but not if the employee IS the project manager"""
         if not self.approver and self.project:
             project_manager = frappe.db.get_value("Smart Project", self.project, "project_manager")
-            if project_manager:
+
+            # Get the user_id of the employee making the request
+            employee_user = None
+            if self.employee:
+                employee_user = frappe.db.get_value("Employee", self.employee, "user_id")
+
+            # If the employee is NOT the project manager, set project manager as approver
+            if project_manager and project_manager != employee_user:
                 self.approver = project_manager
+            # If the employee IS the project manager, they can self-approve (no approver needed)
+            # The approval logic will allow project managers to approve their own requests
 
     def on_submit(self):
         if self.status == "Draft":
