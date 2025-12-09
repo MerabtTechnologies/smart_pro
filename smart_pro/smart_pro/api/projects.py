@@ -302,6 +302,7 @@ def get_pending_approvals():
 def approve_date_request(request_id, status, comments=None):
     """Approve or reject a date request"""
     user = frappe.session.user
+    user_roles = frappe.get_roles(user)
 
     try:
         request_doc = frappe.get_doc("Employee Date Request", request_id)
@@ -310,16 +311,24 @@ def approve_date_request(request_id, status, comments=None):
         # 1. User is the designated approver
         # 2. User has full access via Smart Pro Settings
         # 3. User is the project manager of the related project
+        # 4. User is System Manager or Administrator
         is_approver = request_doc.approver == user
         has_full_access = user_has_full_access(user)
+        is_system_manager = "System Manager" in user_roles or user == "Administrator"
         is_project_manager = False
 
         if request_doc.project:
             project_manager = frappe.db.get_value("Smart Project", request_doc.project, "project_manager")
             is_project_manager = project_manager == user
 
-        if not (is_approver or has_full_access or is_project_manager):
-            frappe.throw("You are not authorized to approve this request")
+        # Log authorization check for debugging
+        frappe.logger().info(f"Approval check - User: {user}, Approver: {request_doc.approver}, "
+                            f"is_approver: {is_approver}, has_full_access: {has_full_access}, "
+                            f"is_system_manager: {is_system_manager}, is_project_manager: {is_project_manager}, "
+                            f"roles: {user_roles}")
+
+        if not (is_approver or has_full_access or is_system_manager or is_project_manager):
+            frappe.throw(f"You are not authorized to approve this request. User: {user}, Approver: {request_doc.approver}")
 
         # Store old status to detect change
         old_status = request_doc.status
