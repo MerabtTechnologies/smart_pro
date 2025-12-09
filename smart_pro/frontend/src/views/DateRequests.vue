@@ -31,11 +31,9 @@
     </ion-header>
 
     <ion-content :fullscreen="true">
-      <template #fixed>
-        <ion-refresher @ion-refresh="handleRefresh">
-          <ion-refresher-content />
-        </ion-refresher>
-      </template>
+      <ion-refresher slot="fixed" @ion-refresh="handleRefresh">
+        <ion-refresher-content />
+      </ion-refresher>
 
       <!-- Loading State -->
       <div v-if="loading" class="p-4">

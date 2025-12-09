@@ -15,11 +15,9 @@
     </ion-header>
 
     <ion-content :fullscreen="true">
-      <template #fixed>
-        <ion-refresher @ion-refresh="handleRefresh">
-          <ion-refresher-content />
-        </ion-refresher>
-      </template>
+      <ion-refresher slot="fixed" @ion-refresh="handleRefresh">
+        <ion-refresher-content />
+      </ion-refresher>
 
       <div class="p-4">
         <!-- Workflow Overview -->

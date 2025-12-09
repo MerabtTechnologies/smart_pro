@@ -31,11 +31,9 @@
     </ion-header>
 
     <ion-content :fullscreen="true">
-      <template #fixed>
-        <ion-refresher @ion-refresh="handleRefresh">
-          <ion-refresher-content />
-        </ion-refresher>
-      </template>
+      <ion-refresher slot="fixed" @ion-refresh="handleRefresh">
+        <ion-refresher-content />
+      </ion-refresher>
 
       <!-- Today's Summary Card -->
       <div class="p-4 pb-0">
