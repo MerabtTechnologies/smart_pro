@@ -154,6 +154,7 @@ import {
   IonSegment,
   IonSegmentButton,
   IonLabel,
+  onIonViewWillEnter,
 } from "@ionic/vue"
 import { addOutline, folderOutline } from "ionicons/icons"
 import { createResource } from "frappe-ui"
@@ -267,6 +268,11 @@ function createProject() {
 }
 
 onMounted(() => {
+  loadData()
+})
+
+// Reload data when navigating back to this tab
+onIonViewWillEnter(() => {
   loadData()
 })
 </script>

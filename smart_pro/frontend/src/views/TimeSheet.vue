@@ -273,6 +273,7 @@ import {
   IonSegment,
   IonSegmentButton,
   toastController,
+  onIonViewWillEnter,
 } from "@ionic/vue"
 import { addOutline, timeOutline, calendarOutline, folderOutline } from "ionicons/icons"
 import { call } from "frappe-ui"
@@ -435,6 +436,11 @@ function getStatusClass(status) {
 }
 
 onMounted(() => {
+  loadData()
+})
+
+// Reload data when navigating back to this tab
+onIonViewWillEnter(() => {
   loadData()
 })
 </script>

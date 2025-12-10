@@ -191,6 +191,7 @@
 
 <script setup>
 import { ref, onMounted, inject } from "vue"
+import { onIonViewWillEnter } from "@ionic/vue"
 import { useRouter } from "vue-router"
 import {
   IonPage,
@@ -342,6 +343,12 @@ function toggleDarkMode() {
 onMounted(() => {
   initDarkMode()
   loadAppSettings()
+  loadData()
+  loadNotificationCount()
+})
+
+// Reload data when navigating back to this tab
+onIonViewWillEnter(() => {
   loadData()
   loadNotificationCount()
 })

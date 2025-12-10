@@ -87,27 +87,53 @@ const router = createRouter({
   routes,
 })
 
+// Cache authentication state for performance
+let authCache = {
+  user: null,
+  timestamp: 0,
+  TTL: 60000, // 1 minute cache
+}
+
+async function getAuthUser(forceRefresh = false) {
+  const now = Date.now()
+
+  // Return cached value if valid and not forcing refresh
+  if (!forceRefresh && authCache.user !== null && (now - authCache.timestamp) < authCache.TTL) {
+    return authCache.user
+  }
+
+  try {
+    const response = await fetch("/api/method/frappe.auth.get_logged_user")
+    const data = await response.json()
+    authCache.user = data.message || "Guest"
+    authCache.timestamp = now
+    return authCache.user
+  } catch (error) {
+    return "Guest"
+  }
+}
+
+// Clear auth cache on logout
+export function clearAuthCache() {
+  authCache.user = null
+  authCache.timestamp = 0
+}
+
 // Navigation guard for authentication
 router.beforeEach(async (to, from, next) => {
   const publicPages = ["/smart-pro/login"]
   const authRequired = !publicPages.includes(to.path)
 
-  // Check if user is logged in
-  try {
-    const response = await fetch("/api/method/frappe.auth.get_logged_user")
-    const data = await response.json()
+  // Only force refresh on initial load or coming from login
+  const forceRefresh = from.name === undefined || from.path === "/smart-pro/login"
+  const user = await getAuthUser(forceRefresh)
 
-    if (authRequired && (!data.message || data.message === "Guest")) {
-      return next("/smart-pro/login")
-    }
+  if (authRequired && (!user || user === "Guest")) {
+    return next("/smart-pro/login")
+  }
 
-    if (to.path === "/smart-pro/login" && data.message && data.message !== "Guest") {
-      return next("/smart-pro/home")
-    }
-  } catch (error) {
-    if (authRequired) {
-      return next("/smart-pro/login")
-    }
+  if (to.path === "/smart-pro/login" && user && user !== "Guest") {
+    return next("/smart-pro/home")
   }
 
   next()

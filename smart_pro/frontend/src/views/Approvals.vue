@@ -283,6 +283,7 @@ import {
   IonLabel,
   IonSpinner,
   toastController,
+  onIonViewWillEnter,
 } from "@ionic/vue"
 import {
   refreshOutline,
@@ -495,6 +496,11 @@ watch(approvalType, () => {
 })
 
 onMounted(() => {
+  loadData()
+})
+
+// Reload data when navigating back to this tab
+onIonViewWillEnter(() => {
   loadData()
 })
 </script>

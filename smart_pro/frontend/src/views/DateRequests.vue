@@ -367,6 +367,7 @@ import {
   IonSegment,
   IonSegmentButton,
   toastController,
+  onIonViewWillEnter,
 } from "@ionic/vue"
 import { addOutline, calendarOutline, personOutline, checkmarkCircleOutline, createOutline, checkmarkOutline, closeOutline, chevronDownOutline, chevronUpOutline } from "ionicons/icons"
 import { call } from "frappe-ui"
@@ -649,6 +650,11 @@ async function rejectRequest(request) {
 }
 
 onMounted(() => {
+  loadData()
+})
+
+// Reload data when navigating back to this tab
+onIonViewWillEnter(() => {
   loadData()
 })
 </script>

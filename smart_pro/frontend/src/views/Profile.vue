@@ -127,6 +127,7 @@
 <script setup>
 import { ref, computed, onMounted } from "vue"
 import { useRouter } from "vue-router"
+import { clearAuthCache } from "@/router"
 import {
   IonPage,
   IonHeader,
@@ -141,6 +142,7 @@ import {
   IonBackButton,
   alertController,
   loadingController,
+  onIonViewWillEnter,
 } from "@ionic/vue"
 import {
   settingsOutline,
@@ -266,14 +268,16 @@ async function logout() {
                 "Content-Type": "application/json",
               },
             })
-            // Clear any local storage
+            // Clear auth cache and local storage
+            clearAuthCache()
             localStorage.removeItem("user_id")
             sessionStorage.clear()
             // Redirect to login page
             window.location.href = "/smart-pro/login"
           } catch (error) {
             console.error("Logout error:", error)
-            // Force redirect even if logout fails
+            // Clear auth cache and force redirect even if logout fails
+            clearAuthCache()
             window.location.href = "/smart-pro/login"
           } finally {
             await loading.dismiss()
@@ -286,6 +290,11 @@ async function logout() {
 }
 
 onMounted(() => {
+  loadUserData()
+})
+
+// Reload data when navigating back to this tab
+onIonViewWillEnter(() => {
   loadUserData()
 })
 </script>
