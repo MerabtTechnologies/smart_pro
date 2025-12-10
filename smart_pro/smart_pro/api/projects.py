@@ -574,15 +574,32 @@ def get_employee_assigned_projects():
 # ==================== EMPLOYEE DATE REQUEST APIs ====================
 
 @frappe.whitelist()
-def get_my_date_requests():
-    """Get all date requests submitted by current employee"""
+def get_my_date_requests(include_from_completed_projects=False):
+    """Get all date requests submitted by current employee
+
+    Args:
+        include_from_completed_projects: If False (default), exclude requests from completed projects
+    """
     user = frappe.session.user
+
+    # Convert string "true"/"false" to boolean
+    if isinstance(include_from_completed_projects, str):
+        include_from_completed_projects = include_from_completed_projects.lower() == "true"
 
     try:
         employee = frappe.db.get_value("Employee", {"user_id": user}, "name")
 
         if not employee:
             return []
+
+        # Get list of completed projects to exclude
+        completed_projects = []
+        if not include_from_completed_projects:
+            completed_projects = frappe.get_list(
+                "Smart Project",
+                filters={"status": "Completed"},
+                pluck="name"
+            )
 
         requests = frappe.get_list(
             "Employee Date Request",
@@ -592,6 +609,10 @@ def get_my_date_requests():
                     "project_scope", "assignment"],
             order_by="modified desc"
         )
+
+        # Filter out requests from completed projects
+        if completed_projects:
+            requests = [r for r in requests if r.get("project") not in completed_projects]
 
         return requests
     except Exception as e:
@@ -637,9 +658,19 @@ def create_date_request(project, from_date, to_date, reason, request_type="Proje
 # ==================== TIMESHEET APIs ====================
 
 @frappe.whitelist()
-def get_my_timesheets(from_date=None, to_date=None):
-    """Get all timesheets for current employee"""
+def get_my_timesheets(from_date=None, to_date=None, include_from_completed_projects=False):
+    """Get all timesheets for current employee
+
+    Args:
+        from_date: Optional filter for start date
+        to_date: Optional filter for end date
+        include_from_completed_projects: If False (default), exclude timesheets from completed projects
+    """
     user = frappe.session.user
+
+    # Convert string "true"/"false" to boolean
+    if isinstance(include_from_completed_projects, str):
+        include_from_completed_projects = include_from_completed_projects.lower() == "true"
 
     try:
         employee = frappe.db.get_value("Employee", {"user_id": user}, "name")
@@ -647,7 +678,20 @@ def get_my_timesheets(from_date=None, to_date=None):
         if not employee:
             return []
 
+        # Get list of completed projects to exclude
+        completed_projects = []
+        if not include_from_completed_projects:
+            completed_projects = frappe.get_list(
+                "Smart Project",
+                filters={"status": "Completed"},
+                pluck="name"
+            )
+
         filters = {"employee": employee}
+
+        # Exclude timesheets from completed projects
+        if completed_projects:
+            filters["project"] = ["not in", completed_projects]
 
         if from_date:
             filters["date"] = [">=", from_date]
