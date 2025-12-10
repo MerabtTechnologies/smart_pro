@@ -44,11 +44,8 @@
         <ion-icon :icon="calendarOutline" class="empty-state-icon" />
         <div class="empty-state-title">No date requests</div>
         <div class="empty-state-description">
-          {{ filter === "pending" ? "No pending requests" : filter === "approved" ? "No approved requests" : filter === "rejected" ? "No rejected requests" : "Submit a date request to update your project dates" }}
+          {{ filter === "pending" ? "No pending requests" : filter === "approved" ? "No approved requests" : filter === "rejected" ? "No rejected requests" : "Your date requests will appear here" }}
         </div>
-        <ion-button class="mt-4" @click="openAddModal">
-          New Request
-        </ion-button>
       </div>
 
       <!-- Date Requests List -->
