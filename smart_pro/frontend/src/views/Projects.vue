@@ -151,7 +151,7 @@ const $dayjs = inject("$dayjs")
 
 const loading = ref(true)
 const searchQuery = ref("")
-const statusFilter = ref("all")
+const statusFilter = ref("active")
 const projects = ref([])
 
 const projectsResource = createResource({

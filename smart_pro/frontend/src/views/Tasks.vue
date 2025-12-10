@@ -396,7 +396,7 @@ const router = useRouter()
 const $dayjs = inject("$dayjs")
 
 const loading = ref(true)
-const filter = ref("all")
+const filter = ref("open")
 const tasks = ref([])
 const showProgressModal = ref(false)
 const selectedTask = ref(null)
