@@ -944,3 +944,89 @@ def mark_all_notifications_as_read():
     except Exception as e:
         frappe.logger().error(f"Error marking all notifications as read: {str(e)}")
         return {"success": False, "message": str(e)}
+
+
+# ==================== SOCIAL LOGIN ====================
+
+@frappe.whitelist(allow_guest=True)
+def get_social_login_providers():
+    """Get all enabled social login providers for the login page"""
+    try:
+        providers = []
+
+        # Get all enabled social login keys
+        social_login_keys = frappe.get_all(
+            "Social Login Key",
+            filters={"enable_social_login": 1},
+            fields=["name", "provider_name", "icon", "client_id"]
+        )
+
+        # Map provider names to their login URLs and icons
+        provider_config = {
+            "google": {
+                "label": "Google",
+                "icon": "logo-google",
+                "color": "#DB4437",
+                "url": "/api/method/frappe.integrations.oauth2_logins.login_via_google"
+            },
+            "github": {
+                "label": "GitHub",
+                "icon": "logo-github",
+                "color": "#333333",
+                "url": "/api/method/frappe.integrations.oauth2_logins.login_via_github"
+            },
+            "facebook": {
+                "label": "Facebook",
+                "icon": "logo-facebook",
+                "color": "#4267B2",
+                "url": "/api/method/frappe.integrations.oauth2_logins.login_via_facebook"
+            },
+            "office_365": {
+                "label": "Microsoft",
+                "icon": "logo-microsoft",
+                "color": "#00A4EF",
+                "url": "/api/method/frappe.integrations.oauth2_logins.login_via_office365"
+            },
+            "frappe": {
+                "label": "Frappe",
+                "icon": "globe-outline",
+                "color": "#0089FF",
+                "url": "/api/method/frappe.integrations.oauth2_logins.login_via_frappe"
+            }
+        }
+
+        for key in social_login_keys:
+            provider_name = key.provider_name.lower().replace(" ", "_")
+            config = provider_config.get(provider_name)
+
+            if config:
+                providers.append({
+                    "name": key.name,
+                    "provider": provider_name,
+                    "label": config["label"],
+                    "icon": key.icon or config["icon"],
+                    "color": config["color"],
+                    "url": config["url"]
+                })
+            else:
+                # Custom provider
+                providers.append({
+                    "name": key.name,
+                    "provider": provider_name,
+                    "label": key.provider_name,
+                    "icon": key.icon or "globe-outline",
+                    "color": "#6B7280",
+                    "url": f"/api/method/frappe.integrations.oauth2_logins.custom/{provider_name}"
+                })
+
+        return {
+            "success": True,
+            "providers": providers
+        }
+    except Exception as e:
+        frappe.logger().error(f"Error getting social login providers: {str(e)}")
+        return {
+            "success": False,
+            "providers": [],
+            "message": str(e)
+        }
