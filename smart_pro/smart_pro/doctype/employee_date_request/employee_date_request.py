@@ -28,12 +28,12 @@ class EmployeeDateRequest(Document):
             self.total_days = date_diff(self.to_date, self.from_date) + 1
 
     def link_assignment(self):
-        """Link to Employee Project Assignment if project is selected and fetch project scope"""
+        """Link to Employee Project Assignment if project is selected and fetch project scope and approver"""
         if self.request_type == "Project Date Update" and self.project and self.employee and not self.assignment:
             assignment = frappe.db.get_value(
                 "Employee Project Assignment",
                 {"employee": self.employee, "project": self.project, "status": "Active"},
-                ["name", "project_scope"],
+                ["name", "project_scope", "approver"],
                 as_dict=True
             )
             if assignment:
@@ -41,12 +41,23 @@ class EmployeeDateRequest(Document):
                 # Fetch project scope from assignment if not already set
                 if assignment.project_scope and not self.project_scope:
                     self.project_scope = assignment.project_scope
+                # Fetch approver from assignment if not already set
+                if assignment.approver and not self.approver:
+                    self.approver = assignment.approver
 
-        # Also fetch project_scope if assignment is already set but scope is empty
-        if self.assignment and not self.project_scope:
-            scope = frappe.db.get_value("Employee Project Assignment", self.assignment, "project_scope")
-            if scope:
-                self.project_scope = scope
+        # Also fetch project_scope and approver if assignment is already set
+        if self.assignment:
+            assignment_data = frappe.db.get_value(
+                "Employee Project Assignment",
+                self.assignment,
+                ["project_scope", "approver"],
+                as_dict=True
+            )
+            if assignment_data:
+                if assignment_data.project_scope and not self.project_scope:
+                    self.project_scope = assignment_data.project_scope
+                if assignment_data.approver and not self.approver:
+                    self.approver = assignment_data.approver
 
     def set_default_approver(self):
         """Set default approver from Employee Project Assignment, fallback to project manager"""
