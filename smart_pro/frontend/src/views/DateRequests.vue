@@ -108,8 +108,8 @@
             Tasks will be auto-created on approval
           </div>
 
-          <!-- Action Buttons for Pending Requests -->
-          <div v-if="request.status === 'Pending Approval'" class="mt-3 pt-3 border-t border-gray-100">
+          <!-- Action Buttons for Pending Requests (hidden for full access users - read-only mode) -->
+          <div v-if="request.status === 'Pending Approval' && !hasFullAccess" class="mt-3 pt-3 border-t border-gray-100">
             <div class="flex flex-wrap gap-2">
               <!-- Edit Dates Button -->
               <ion-button size="small" fill="outline" color="primary" @click="openEditModal(request)">
@@ -126,6 +126,12 @@
                 <ion-icon :icon="closeOutline" slot="start" />
                 Reject
               </ion-button>
+            </div>
+          </div>
+          <!-- Read-only indicator for full access users -->
+          <div v-if="request.status === 'Pending Approval' && hasFullAccess" class="mt-3 pt-3 border-t border-gray-100">
+            <div class="text-xs text-gray-500 italic">
+              View only mode - Full access users cannot approve/reject date requests
             </div>
           </div>
         </div>
