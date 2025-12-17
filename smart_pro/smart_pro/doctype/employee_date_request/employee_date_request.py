@@ -234,6 +234,12 @@ class EmployeeDateRequest(Document):
     def default_list_data():
         columns = [
             {
+                "label": "Name",
+                "type": "Data",
+                "key": "name",
+                "width": "12rem",
+            },
+            {
                 "label": "Employee",
                 "type": "Data",
                 "key": "employee",
