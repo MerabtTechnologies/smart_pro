@@ -269,6 +269,12 @@ async function openAbout() {
   await alert.present()
 }
 
+// Helper to read a cookie value by name
+function getCookie(name) {
+  const match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'))
+  return match ? decodeURIComponent(match[1]) : null
+}
+
 async function logout() {
   const alert = await alertController.create({
     header: "Logout",
@@ -288,12 +294,21 @@ async function logout() {
           await loading.present()
 
           try {
-            // Call Frappe logout API
+            // Call Frappe logout API. Include credentials so the session cookie is sent,
+            // and add CSRF/X-Requested-With headers if available.
+            const headers = {
+              "Content-Type": "application/json",
+              "X-Requested-With": "XMLHttpRequest",
+            }
+            const csrf = getCookie("csrf_token") || getCookie("csrftoken") || getCookie("csrf-token")
+            if (csrf) {
+              headers["X-Frappe-CSRF-Token"] = csrf
+            }
+
             await fetch("/api/method/logout", {
               method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
+              headers,
+              credentials: "include",
             })
             // Clear auth cache and local storage
             clearAuthCache()
