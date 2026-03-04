@@ -275,6 +275,12 @@ function getCookie(name) {
   return match ? decodeURIComponent(match[1]) : null
 }
 
+// Helper to delete a non-HttpOnly cookie by name
+function deleteCookie(name) {
+  document.cookie = `${name}=; Max-Age=0; path=/; domain=${location.hostname}`
+  document.cookie = `${name}=; Max-Age=0; path=/;` // fallback without domain
+}
+
 async function logout() {
   const alert = await alertController.create({
     header: "Logout",
@@ -305,11 +311,49 @@ async function logout() {
               headers["X-Frappe-CSRF-Token"] = csrf
             }
 
-            await fetch("/api/method/logout", {
+            const resp = await fetch("/api/method/logout", {
               method: "POST",
               headers,
               credentials: "include",
             })
+            console.debug("Logout response:", resp.status, resp.statusText)
+
+            // Attempt to remove any non-httpOnly cookies that may cause auto-login
+            ;[
+              "sid",
+              "session_id",
+              "user_id",
+              "full_name",
+              "system_user",
+              "csrf_token",
+              "csrftoken",
+              "csrf-token",
+              "remember_login",
+            ].forEach((c) => deleteCookie(c))
+
+            // Verify server-side session cleared by fetching logged user
+            try {
+              const who = await fetch("/api/method/frappe.auth.get_logged_user", {
+                method: "GET",
+                credentials: "include",
+                headers: { "X-Requested-With": "XMLHttpRequest" },
+              })
+              const whoJson = await who.json().catch(() => null)
+              console.debug("Post-logout get_logged_user:", who.status, whoJson)
+              // If server still reports a user, show an alert to indicate server-side issue
+              const logged = whoJson?.message || whoJson?.data || null
+              if (logged) {
+                const infoAlert = await alertController.create({
+                  header: "Logout may have failed",
+                  message:
+                    "Server still reports an active session after logout. Please contact the administrator.",
+                  buttons: ["OK"],
+                })
+                await infoAlert.present()
+              }
+            } catch (e) {
+              console.error("Error checking logged user after logout:", e)
+            }
             // Clear auth cache and local storage
             clearAuthCache()
             localStorage.removeItem("user_id")
