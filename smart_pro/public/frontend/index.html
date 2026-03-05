@@ -18,5 +18,8 @@
   <link rel="manifest" href="/assets/smart_pro/frontend/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/assets/smart_pro/frontend/registerSW.js"></script></head>
   <body>
     <div id="app"></div>
+    <script>
+      window.csrf_token = "{{ frappe.session.csrf_token }}";
+    </script>
   </body>
 </html>
