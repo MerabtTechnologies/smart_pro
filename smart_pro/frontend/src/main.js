@@ -43,8 +43,9 @@ setConfig("resourceFetcher", frappeRequest)
 
         // preserve existing headers if they are a Headers instance
         if (init.headers instanceof Headers) {
-          // add CSRF token header if available
-          if (window.csrf_token && window.csrf_token !== "{{ csrf_token }}") {
+          // add CSRF token header if available and this is not a GET
+          const method = (init.method || 'GET').toUpperCase()
+          if (method !== 'GET' && window.csrf_token && window.csrf_token !== "{{ csrf_token }}") {
             init.headers.set("X-Frappe-CSRF-Token", window.csrf_token)
           }
           if (!init.headers.has("X-Requested-With")) {
@@ -52,7 +53,8 @@ setConfig("resourceFetcher", frappeRequest)
           }
         } else {
           // plain object
-          if (window.csrf_token && window.csrf_token !== "{{ csrf_token }}") {
+          const method = (init.method || 'GET').toUpperCase()
+          if (method !== 'GET' && window.csrf_token && window.csrf_token !== "{{ csrf_token }}") {
             init.headers["X-Frappe-CSRF-Token"] = window.csrf_token
           }
           if (!init.headers["X-Requested-With"]) {
